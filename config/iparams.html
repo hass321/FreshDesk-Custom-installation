@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <link rel="stylesheet" type="text/css" href="https://static.freshdev.io/fdk/2.0/assets/freshdesk.css">
+      <script src="https://static.freshdev.io/fdk/2.0/assets/fresh_client.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+      <style>
+        .dropdown {
+           width: 10%;
+           color: black;
+           border: 5;
+        }
+        #error_div {
+          color: red;
+        }
+        .select2-container {
+         width: 70%;
+        }
+        .select2-container--default {
+          width: 80% !important;
+        }
+        .select2-locked {
+          padding: 0px !important;
+        }
+        .check{
+            margin-top: 10px;
+        }
+      </style>
+      <script type="text/javascript">
+        var isValid = true;
+
+        function getConfigs(config){
+            // console.log(config)
+        }
+
+        function postConfigs() {
+            var contact={};
+            var company = [];
+            var conditions = [];
+            var api_key = jQuery("input[name=api_key]").val();
+            var first_name = jQuery("input[name=first_name]").val();
+            var last_name = jQuery("input[name=last_name]").val();
+            contact["first_name"] = first_name;
+            contact["last_name"] = last_name;
+            jQuery("#company option:selected").each(function(){
+            company.push(jQuery(this).val());
+            });
+            jQuery("input[name=\"condition\"]:checked").each(function(){
+            conditions.push(jQuery(this).val());
+            });
+            return {
+            __meta: {
+                secure: ["api_key"]
+            },
+            api_key,
+            contact,
+            company: company,
+            conditions: conditions
+            }
+        }
+
+        async function validate() {
+        //   let isValid = true;
+          var input = $("input[name=api_key]").val();
+          var domain = $("input[name=domain_name]").val();
+          if(input && domain){
+               return fetch(`https://${domain}.freshdesk.com/${api_key}/v2/tickets`)
+              .then(res => res.status)
+              .catch(err => console.log(err))
+          }
+          else if(!input || !domain){
+            return 'please fill both the fields';
+          }
+        }
+
+        $(document).ready(() => {
+            $('#check').on('click', checking)
+            function checking(){
+                validate()
+                .then(res => {
+                    if(res == 200){
+                        $('#msg').text("Success!").css('color', 'green')
+                        isValid = true;
+                    }
+                    else{
+                        $('#msg').text("Failed!").css('color', 'red')
+                        isValid = false;
+                    }
+                })
+            }
+        })
+
+      </script>
+    </head>
+    <body>
+      <div class="contact-fields">
+        <h3>Contact Fields</h3>
+          <label for="api_key">API key</label>
+          <input type="text" name="api_key">
+          <span id="error_div" class="error" style="display: none;">Please enter a valid input. Please enter only alphabets.</span>
+          <label for="first_name">Domain name</label>
+          <input type="text" name="domain_name">
+          <span id="error_div" class="error" style="display: none;">Please enter a valid input. Please enter only alphabets.</span>
+          <button id="check" class="btn btn-primary check">check</button>
+      </div>
+      <h3 id="msg"></h3>
+  </html>
